@@ -1,0 +1,159 @@
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: naresh-composition
+  labels:
+    provider: azure
+    cluster: aks
+spec:
+  compositeTypeRef:
+    apiVersion: devopstoolkitseries.com/v1alpha1
+    kind: CompositeCluster
+  writeConnectionSecretsToNamespace: crossplane-system
+  patchSets:
+  - name: location
+    patches:
+    - fromFieldPath: spec.parameters.location
+      toFieldPath: spec.forProvider.location
+  resources:
+# ------------------------------- AKS Cluster ----------------------------
+  - name: aks
+    base:
+      apiVersion: containerservice.azure.jet.crossplane.io/v1alpha2
+      kind: KubernetesCluster
+      spec:
+        writeConnectionSecretToRef:
+        namespace: crossplane-system      
+        forProvider:
+          resourceGroupNameSelector:
+            matchControllerRef: true
+          vnetSubnetIDSelector:
+            matchControllerRef: true            
+          defaultNodePool:
+            - name: default
+              vmSize: "Standard_B2s"
+              nodeCount: 1                        
+          dnsPrefix: "nareshaks"        
+          identity:
+            - type: "SystemAssigned"
+        providerConfigRef:
+          name: azure-jet-provider-config
+    patches:
+    - patchSetName: location
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+    - fromFieldPath: spec.id
+      toFieldPath: spec.tags.purpose      
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels[crossplane.io/app]
+# ------------------------------- AKS Nodepool ----------------------------      
+  - name: aksnode
+    base:
+      apiVersion: containerservice.azure.jet.crossplane.io/v1alpha2
+      kind: KubernetesClusterNodePool
+      spec:
+        forProvider:
+          kubernetesClusterIdSelector:
+            matchControllerRef: true
+          vnetSubnetIDSelector:
+            matchControllerRef: true 
+        providerConfigRef:
+          name: azure-jet-provider-config
+    patches:
+    - patchSetName: location
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%snp"      
+    - fromFieldPath: spec.parameters.nodeCount
+      toFieldPath: spec.forProvider.nodeCount
+    - fromFieldPath: spec.parameters.nodeSize
+      toFieldPath: spec.forProvider.vmSize
+      transforms:
+      - type: map
+        map:
+          small: Standard_B2s
+          medium: Standard_B4ms
+          large: Standard_B8ms
+    # - type: ToCompositeFieldPath
+    #   fromFieldPath: status.conditions[0].status
+    #   toFieldPath: status.nodePoolStatus
+    connectionDetails:
+      - fromConnectionSecretKey: kubeconfig 
+# ------------------------------- Resource Group -------------------------
+  - name: resource-group
+    base:
+      apiVersion: azure.jet.crossplane.io/v1alpha2
+      kind: ResourceGroup
+      spec:
+        forProvider:
+          tags:
+            provisioner: crossplane
+        providerConfigRef:
+          name: azure-jet-provider-config
+    patches:
+    - patchSetName: location
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-rg"
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels[crossplane.io/app]            
+# ------------------------------- v-net ----------------------------------
+  - name: v-net-nodepool
+    base:
+      apiVersion: network.azure.jet.crossplane.io/v1alpha2
+      kind: VirtualNetwork
+      spec:
+        forProvider:
+          resourceGroupNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: azure-jet-provider-config 
+    patches:
+    - patchSetName: location
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-vnet1"
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels[crossplane.io/app]            
+    - fromFieldPath: spec.vnetcidrBlock
+      toFieldPath: spec.forProvider.addressSpace
+# ------------------------------- subnet ----------------------------------      
+  - name: subnet-nodepool
+    base:
+      apiVersion: network.azure.jet.crossplane.io/v1alpha2
+      kind: Subnet
+      spec:
+        forProvider:
+          resourceGroupNameSelector:
+            matchControllerRef: true
+          virtualNetworkNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: azure-jet-provider-config 
+    patches:
+    - patchSetName: location
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-subnet"
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels[crossplane.io/app]            
+    - fromFieldPath: spec.subnetCidrBlock1
+      toFieldPath: spec.forProvider.addressPrefixes

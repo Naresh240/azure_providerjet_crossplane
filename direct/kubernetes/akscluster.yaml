@@ -1,0 +1,27 @@
+---
+apiVersion: containerservice.azure.jet.crossplane.io/v1alpha2
+kind: KubernetesCluster
+metadata:
+  name: naresh-aks
+spec:
+  writeConnectionSecretToRef:
+    name: naresh-kubeconfig
+    namespace: crossplane-system
+  forProvider:
+    location: West Europe
+    resourceGroupNameRef:
+      name: naresh-rg
+    dnsPrefix: "nareshaks"
+    defaultNodePool:
+      - name: default
+        minCount: 1
+        nodeCount: 3
+        maxCount: 5
+        vmSize: "Standard_B2s"
+        enableAutoScaling: true
+    identity:
+      - type: "SystemAssigned"
+    tags:
+      purpose: naresh
+  providerConfigRef:
+    name: azure-jet-provider-config

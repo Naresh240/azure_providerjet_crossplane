@@ -1,0 +1,17 @@
+---
+apiVersion: devopstoolkitseries.com/v1alpha1
+kind: CompositeCluster
+metadata:
+  name: naresh
+spec:
+  id: naresh
+  compositionRef:
+    name: naresh-composition
+  vnetcidrBlock:
+    - 10.0.0.0/25
+  subnetCidrBlock1:
+    - 10.0.0.0/25
+  parameters:
+    location: West Europe
+    nodeSize: small
+    nodeCount: 2

@@ -1,0 +1,55 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: azurecompositeclusters.devopstoolkitseries.com
+spec:
+  connectionSecretKeys:
+  - kubeconfig
+  group: devopstoolkitseries.com
+  names:
+    kind: AzureCompositeCluster
+    plural: azurecompositeclusters
+  claimNames:
+    kind: ClusterClaim
+    plural: clusterclaims
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID of this Cluster that other objects will use to refer to it
+              vnetcidrBlock:
+                description: CIDR Block for VirtualNetwork
+                type: array
+                items:
+                  type: string
+              subnetCidrBlock1:
+                description: CIDR Block for subnet1
+                type: array
+                items:
+                  type: string                                                   
+              parameters:
+                type: object
+                properties:
+                  location:
+                    description: location where the cluster has to be deployed
+                    type: string
+                  nodeSize:
+                    description: Size of nodes of nodepool for the cluster
+                    type: string
+                  nodeCount:
+                    description: number of nodes for the kubernetes cluster
+                    type: number
+                required:
+                - nodeSize                
+            required:
+            - id
+            - parameters

@@ -1,0 +1,12 @@
+---
+apiVersion: azure.jet.crossplane.io/v1alpha2
+kind: ResourceGroup
+metadata:
+  name: naresh-rg
+spec:
+  forProvider:
+    location: West Europe
+    tags:
+      provisioner: crossplane
+  providerConfigRef:
+    name: azure-jet-provider-config

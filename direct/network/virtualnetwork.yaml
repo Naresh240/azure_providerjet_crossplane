@@ -1,0 +1,14 @@
+---
+apiVersion: network.azure.jet.crossplane.io/v1alpha2
+kind: VirtualNetwork
+metadata:
+  name: naresh-vn
+spec:
+  forProvider:
+    location: West Europe
+    resourceGroupNameRef:
+      name: naresh-rg
+    addressSpace:
+      - 10.0.0.0/25
+  providerConfigRef:
+    name: azure-jet-provider-config 
