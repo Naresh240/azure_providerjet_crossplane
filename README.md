@@ -7,7 +7,7 @@
 2. Install Crossplane
 ```
 
-![image](https://user-images.githubusercontent.com/58024415/176353036-c97287f3-6c18-4ae9-8159-791802af6b59.png)
+![image](https://user-images.githubusercontent.com/58024415/176353130-bb097a26-d423-44a6-8424-2c861e55ce3a.png)
 
 ## Install Crossplane with Helm
 
