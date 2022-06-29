@@ -7,6 +7,8 @@
 2. Install Crossplane
 ```
 
+![image](https://user-images.githubusercontent.com/58024415/176353036-c97287f3-6c18-4ae9-8159-791802af6b59.png)
+
 ## Install Crossplane with Helm
 
 ```bash
